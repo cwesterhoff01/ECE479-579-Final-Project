@@ -56,50 +56,49 @@ def calcHeuristic(grid, goal):
             y = y + 1
         x = x + 1
 
-def getPath(robot, grid, start, goal): #start is essentially the robot's current position
+def getPath( grid, start, goal): #start is essentially the robot's current position
     R = 4 #4x4 grid
     C = 4 #4x4 grid
-    robotX=robot.posX
-    robotY=robot.posY
+    robotX=start[0]
+    robotY=start[1]
     path = []
     path.append([robotX, robotY])
 
     options = []
     isNotAtGoal = True
     while isNotAtGoal:
-        x = 0
-        for i in grid:
-            y = 0
-            for j in i:
-                #Check right
-                if (y + 1) < 4:
-                    options.append([robotX, robotY + 1, grid[robotX][robotY + 1]]) #x, y, heuristic value
-                #Check down
-                if (x + 1) < 4:
-                    options.append([robot.posX + 1, robot.posY, grid[robot.posX + 1][robot.posY]])
-                #Check left
-                if (y - 1) >= 0:
-                    options.append([robot.posX, robot.posY - 1, grid[robot.posX][robot.posY - 1]])
-                #Check up
-                if (x - 1) >= 0:
-                    options.append([robotX- 1, robotY, grid[robot.posX - 1][robot.posY]])
-                
-                #Get minimum
-                minH = 1000
-                minX = 0
-                minY = 0
-                for z in options:
-                    if z[2] < minH: 
-                        minH = z[2]
-                        minX = z[0]
-                        minY = z[1]
-                #update move
-                robotX = minX
-                robotY = minY
-                path.append[[robotX, robotY]]
-                options.clear()
-                y = y + 1
-            x = x + 1
+        #Check right
+        if (robotY + 1) < C:
+            options.append([robotX, robotY + 1, grid[robotX][robotY + 1]]) #x, y, heuristic value
+        #Check down
+        if (robotX + 1) < R:
+            options.append([robotX + 1, robotY, grid[robotX + 1][robotY]])
+        #Check left
+        if (robotY - 1) >= 0:
+            options.append([robotX, robotY - 1, grid[robotX][robotY - 1]])
+        #Check up
+        if (robotX - 1) >= 0:
+            options.append([robotX- 1, robotY, grid[robotX - 1][robotY]])
+        
+        #Get minimum
+        minH = 10000
+        minX = 0
+        minY = 0
+        for z in options:
+            if z[2] < minH: 
+                minH = z[2]
+                minX = z[0]
+                minY = z[1]
+        #update move
+        robotX = minX
+        robotY = minY
+        path.append([robotX, robotY])
+        options.clear()
+     
+        if (robotX == goal[0] & robotY == goal[1]):
+            return path
+
+        
 
 def checkOrders(robot_list):
     if(len(order_list) >= 1):
@@ -133,11 +132,7 @@ def move_robots(robot_list):
                 #TODO: #drain energy and calculate new time for orders
             if len(bot.path) < 1:
                 print(bot.name + " has arrived at it's destination!")
-                delievered = None
-                for obj in bot.orders:
-                    if (obj.posX == bot.posX) and (obj.posY == bot.posY):
-                        delievered = obj
-                (bot.orders).remove(delievered)
+                (bot.orders).pop(0)
                 #Start next trip or if robot is empty automatically go to (0,0)
                 if len(bot.orders) > 0:
                     #start path for next order
