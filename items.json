@@ -1,0 +1,44 @@
+[
+{
+  "name": "dog biscuits",
+  "weight": "large",
+  "freezer": false,
+  "fragile": false
+},
+{
+  "name": "yogurt",
+  "weight": "small",
+  "freezer": true,
+  "fragile": false
+},
+{
+  "name": "bread",
+  "weight": "medium",
+  "freezer": false,
+  "fragile": true
+},
+{
+  "name": "ice-cream",
+  "weight": "large",
+  "freezer": true,
+  "fragile": false
+},
+{
+  "name": "chips",
+  "weight": "medium",
+  "freezer": false,
+  "fragile": false
+},
+{
+  "name": "granola",
+  "weight": "medium",
+  "freezer": false,
+  "fragile": false
+},
+{
+  "name": "milk",
+  "weight": "large",
+  "freezer": false,
+  "fragile": false
+}
+]
