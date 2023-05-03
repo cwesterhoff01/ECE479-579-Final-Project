@@ -12,12 +12,7 @@ class robot:
         self.posX = 0
         self.posY = 0
         #path is determined by grid x,y. Values in 2D array represent heuristic values
-        self.grid = [ 
-        [0,0,0,0],
-        [0,0,0,0],
-        [0,0,0,0],
-        [0,0,0,0]
-    ]
+
         # energy is determining whether robot is able to compelte the order
         # time is determining which order robot should take first
 class order:
@@ -36,7 +31,7 @@ class orderThread(threading.Thread):
         while True:
             #Enter coordinates
                 #Example entry
-                # 2, 3
+                # 2, 3 fdfsf
             user_input = input()
             cordinates = user_input.split(',')
             newOrder = order(int(cordinates[0]),int(cordinates[1]))
@@ -75,6 +70,13 @@ def move_robots(robot_list):
 def main():
     print("Starting parting A in ECE 479/579 final project")
     robot_list = [robot("r1"), robot("r2"), robot("r3")]
+
+    grid = [ 
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0]
+    ]
     while True:
         #Delay time to simulate robots moving
         time.sleep(5)
