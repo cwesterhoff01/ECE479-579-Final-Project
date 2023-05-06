@@ -19,15 +19,17 @@ class robot:
         self.posY = 0
         #path is determined by grid x,y. Values in 2D array represent heuristic values
         self.path = []
+        self.traveled = []
         # energy is determining whether robot is able to compelte the order
         # time is determining which order robot should take first
+        self.active = False
 
 class order:
     #TODO: setup class
     def __init__(self, x, y):
         self.goalX = x
         self.goalY = y
-        self.time = 0 # assuming robot moves 1 m/s
+        self.time = 60 # assuming robot moves 1 m/s
 
 #orderThread
 class orderThread(threading.Thread):
@@ -46,7 +48,7 @@ class orderThread(threading.Thread):
 
 #Functions
 def calcHeuristic(grid, goal):
-    print(goal[0], goal[1])
+    #print(goal[0], goal[1])
     x = 0
     for row in grid:
         y = 0 
@@ -94,63 +96,100 @@ def getPath( grid, start, goal): #start is essentially the robot's current posit
         robotY = minY
         path.append([robotX, robotY])
         options.clear()
-     
-        if (robotX == goal[0] & robotY == goal[1]):
+
+        #Debug print statement
+        #print("Path is:", path, "\tThe goal is:", goal[0], goal[1])
+
+        if ((robotX == goal[0]) and (robotY == goal[1])): #and = &&
             return path
 
         
 
 def checkOrders(robot_list):
+    delete_list = []
     if(len(order_list) >= 1):
             for orders in order_list:
-                print("Order recieved!", orders.goalX, orders.goalY)
+                #print("Order recieved!", orders.goalX, orders.goalY)
                 #TODO: Assign robots the order!
                 for bot in robot_list:
                     if len(bot.orders) == 0:
                         #Robot has zero orders, give it the order
                         (bot.orders).append(orders)
+                        bot.active = True
+                        delete_list .append(orders)
                         #calculate heuristic
                         calcHeuristic(grid, [orders.goalX, orders.goalY])
                         #give bot a path
-                        bot.path = getPath(bot, grid, [bot.posX, bot.posY], [orders.goalX, orders.goalY])
+                        bot.path = getPath(grid, [bot.posX, bot.posY], [orders.goalX, orders.goalY])
+                        break
                     else:
-                        if len(bot.orders < 2): #currently one active robot
+                        if len(bot.orders) < 2: #currently one active robot
                             #TODO: check order's time & robots energy if it can handle new order if so assign robot the order
-                            (bot.orders).append(orders)
-                        pass      
-            order_list.clear()
+                            calcHeuristic(grid, [0, 0])
+                            returnInitial = getPath(grid, [bot.posX, bot.posY], [0, 0]) #path to go back home (initial node)
+                            calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                            prevOrder = getPath(grid, [0, 0], [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                            calcHeuristic(grid, [orders.goalX, orders.goalY])
+                            newOrder = getPath(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY], [orders.goalX, orders.goalY])
+
+                            if (bot.energy > (len(returnInitial)+len(prevOrder)+len(newOrder)-3)) and (bot.orders[0].time>(len(returnInitial)+len(prevOrder)-2)) and (orders.time>((len(returnInitial)+len(prevOrder)+len(newOrder)-3))):  #orderprev_time>length(returninitial+prevorder)
+                                (bot.orders).append(orders)
+                                delete_list.append(orders)
+                                bot.active = True
+                                break
+
+            for obj in delete_list:
+                order_list.remove(obj)
+            delete_list.clear()
 
 def move_robots(robot_list):
     for bot in robot_list:
-        if len(bot.orders) > 0: # if bot has order
+        if bot.active == True: # if bot has order
             #move robot to correct position
             newPos = bot.path[0]
             bot.posX = newPos[0]
             bot.posY = newPos[1]
+            bot.traveled.append(bot.path[0])
             (bot.path).pop(0)
             #check if robot has made it to goal destination
-                #TODO: #drain energy and calculate new time for orders
+            #drain energy and calculate new time for orders
+            bot.energy = bot.energy - 1
+            for obj in bot.orders:
+                obj.time = obj.time - 1
+
             if len(bot.path) < 1:
-                print(bot.name + " has arrived at it's destination!")
-                (bot.orders).pop(0)
+                #print(bot.name + " has moved to the location: (" + str(bot.posX) + ", " + str(bot.posY) + ").")
+                #print(bot.name + " has arrived at it's destination!")
+                print(bot.name + " arrived at it's destination using the path:", bot.traveled)
+                bot.traveled.clear()
+                if len(bot.orders) > 0:
+                    (bot.orders).pop(0)
                 #Start next trip or if robot is empty automatically go to (0,0)
                 if len(bot.orders) > 0:
                     #start path for next order
                     #calculate heuristic
                     calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
                     #give bot a path
-                    bot.path = getPath(bot, grid, [bot.posX, bot.posY], [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                    bot.path = getPath(grid, [bot.posX, bot.posY], [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                    
+                elif (bot.posX == 0) and (bot.posY == 0):
+                    bot.active = False
                 else:
-                    #TODO: start order for 0,0
-                    pass
+                    calcHeuristic(grid, [0,0])
+                    bot.path = getPath(grid, [bot.posX, bot.posY], [0,0])
+                    #print("Bot path after back to start:", bot.path)
             else:
                 #display to the user the robot's move (i.e. print statement)
-                print(bot.name + " has moved to the location: (" + str(bot.posX) + ", " + str(bot.posY) + ").")
-            
+                #print(bot.name + " has moved to the location: (" + str(bot.posX) + ", " + str(bot.posY) + ").")
+                pass
+        else:
+            #Charge robots
+            bot.energy = 100 
 def main():
     print("Starting parting A in ECE 479/579 final project")
     robot_list = [robot("r1"), robot("r2"), robot("r3")]
     while True:
+        print()
         #Delay time to simulate robots moving
         time.sleep(5)
         #Check new orders and assign them to the correct robot
