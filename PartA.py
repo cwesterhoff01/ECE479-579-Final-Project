@@ -58,6 +58,9 @@ def calcHeuristic(grid, goal):
             y = y + 1
         x = x + 1
 
+    #obstacle add in high heuristic value
+    grid[1][2] = 100
+
 def getPath( grid, start, goal): #start is essentially the robot's current position
     R = 4 #4x4 grid
     C = 4 #4x4 grid
@@ -103,17 +106,16 @@ def getPath( grid, start, goal): #start is essentially the robot's current posit
         if ((robotX == goal[0]) and (robotY == goal[1])): #and = &&
             return path
 
-        
-
 def checkOrders(robot_list):
     delete_list = []
     if(len(order_list) >= 1):
-            for orders in order_list:
-                #print("Order recieved!", orders.goalX, orders.goalY)
-                #TODO: Assign robots the order!
-                for bot in robot_list:
-                    if len(bot.orders) == 0:
-                        #Robot has zero orders, give it the order
+        for orders in order_list:
+            #print("Order recieved!", orders.goalX, orders.goalY)
+            #TODO: Assign robots the order!
+            for bot in robot_list:
+                if len(bot.orders) == 0:
+                    #Robot has zero orders, give it the order1,1
+                    if(bot.active == False):
                         (bot.orders).append(orders)
                         bot.active = True
                         delete_list .append(orders)
@@ -123,21 +125,59 @@ def checkOrders(robot_list):
                         bot.path = getPath(grid, [bot.posX, bot.posY], [orders.goalX, orders.goalY])
                         break
                     else:
-                        if len(bot.orders) < 2: #currently one active robot
-                            #TODO: check order's time & robots energy if it can handle new order if so assign robot the order
-                            calcHeuristic(grid, [0, 0])
-                            returnInitial = getPath(grid, [bot.posX, bot.posY], [0, 0]) #path to go back home (initial node)
-                            calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
-                            prevOrder = getPath(grid, [0, 0], [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
-                            calcHeuristic(grid, [orders.goalX, orders.goalY])
-                            newOrder = getPath(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY], [orders.goalX, orders.goalY])
-
-                            if (bot.energy > (len(returnInitial)+len(prevOrder)+len(newOrder)-3)) and (bot.orders[0].time>(len(returnInitial)+len(prevOrder)-2)) and (orders.time>((len(returnInitial)+len(prevOrder)+len(newOrder)-3))):  #orderprev_time>length(returninitial+prevorder)
+                        (bot.orders).append(orders)
+                        bot.active = True
+                        delete_list .append(orders)
+                        break
+    for obj in delete_list:
+        order_list.remove(obj)
+    delete_list.clear()
+    if(len(order_list) >= 1):
+        for orders in order_list:
+            #print("Order recieved!", orders.goalX, orders.goalY)
+            #TODO: Assign robots the order!
+            for bot in robot_list:
+                    if len(bot.orders) < 2 and len(bot.orders) > 0: #currently one active robot
+                        #TODO: check order's time & robots energy if it can handle new order if so assign robot the order
+                        #print('Initial')
+                        calcHeuristic(grid, [0, 0])
+                        returnInitial = getPath(grid, [bot.posX, bot.posY], [0, 0]) #path to go back home (initial node)
+                        #print('previous')
+                        calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                        prevOrder = getPath(grid, [0, 0], [(bot.orders[0]).goalX, (bot.orders[0]).goalY]) # prev order from initial node (0,0)                            #print('new order')
+                        calcHeuristic(grid, [orders.goalX, orders.goalY])
+                        newOrder = getPath(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY], [orders.goalX, orders.goalY])
+                        #print('direct prev order')
+                        calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                        directPrevOrder = getPath(grid, [bot.posX, bot.posY], [(bot.orders[0]).goalX, (bot.orders[0]).goalY]) # current to prev order
+                        calcHeuristic(grid,  [0, 0])
+                        #print('direct return intial')
+                        directReturnInitial = getPath(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY], [0, 0]) # prev order to initial state
+                        #print('direct new order')
+                        calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                        directNewOrder = getPath(grid, [0, 0], [orders.goalX, orders.goalY]) # initial state to new order
+                                #s1 = returnInitial + prevOrder + newOrder 
+                                #s2 = prevOrder (from current position) + directReturnInitial + directNewOrder
+                        s1 = len(returnInitial) + len(prevOrder) + len(newOrder) - 3
+                        s2 = len(directPrevOrder) + len(directReturnInitial) + len(directNewOrder) - 3
+                        #print("s1", s1)
+                        #print("s2", s2)
+                        if s1>s2:
+                            s=s2
+                            if (bot.energy > (s)) and (orders.time>((len(directReturnInitial) + len(directNewOrder)-2))):  #orderprev_time>length(returninitial+prevorder)
                                 (bot.orders).append(orders)
                                 delete_list.append(orders)
                                 bot.active = True
                                 break
-
+                        else:
+                            s=s1
+                            if (bot.energy > (s)) and (bot.orders[0].time>(len(returnInitial)+len(prevOrder)-2)) and (orders.time>((len(returnInitial)+len(prevOrder)+len(newOrder)-3))):  #orderprev_time>length(returninitial+prevorder)
+                                (bot.orders).insert(0,orders)
+                                delete_list.append(orders)
+                                bot.active = True
+                                bot.path = returnInitial
+                                break
+                            
             for obj in delete_list:
                 order_list.remove(obj)
             delete_list.clear()
