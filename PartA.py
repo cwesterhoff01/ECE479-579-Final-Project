@@ -154,14 +154,14 @@ def checkOrders(robot_list):
                         #print('direct return intial')
                         directReturnInitial = getPath(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY], [0, 0]) # prev order to initial state
                         #print('direct new order')
-                        calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                        #calcHeuristic(grid, [(bot.orders[0]).goalX, (bot.orders[0]).goalY])
+                        calcHeuristic(grid, [1, 3])
                         directNewOrder = getPath(grid, [0, 0], [orders.goalX, orders.goalY]) # initial state to new order
                                 #s1 = returnInitial + prevOrder + newOrder 
                                 #s2 = prevOrder (from current position) + directReturnInitial + directNewOrder
                         s1 = len(returnInitial) + len(prevOrder) + len(newOrder) - 3
                         s2 = len(directPrevOrder) + len(directReturnInitial) + len(directNewOrder) - 3
-                        #print("s1", s1)
-                        #print("s2", s2)
+                        #print("s1:", s1, ", s2:", s2)
                         if s1>s2:
                             s=s2
                             if (bot.energy > (s)) and (orders.time>((len(directReturnInitial) + len(directNewOrder)-2))):  #orderprev_time>length(returninitial+prevorder)
@@ -226,7 +226,7 @@ def move_robots(robot_list):
             #Charge robots
             bot.energy = 100 
 def main():
-    print("Starting parting A in ECE 479/579 final project")
+    print("Starting part A in ECE 479/579 final project!")
     robot_list = [robot("r1"), robot("r2"), robot("r3")]
     while True:
         print()

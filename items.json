@@ -18,9 +18,9 @@
   "fragile": true
 },
 {
-  "name": "ice-cream",
-  "weight": "large",
-  "freezer": true,
+  "name": "protein bars",
+  "weight": "small",
+  "freezer": false,
   "fragile": false
 },
 {
